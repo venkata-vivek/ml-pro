@@ -4,7 +4,7 @@
 # COMMAND ----------
 
 DA = DBAcademyHelper(course_config, lesson_config)
-DA.reset_lesson()
+# DA.reset_lesson()
 DA.init()
 
 DA.paths.datasets_path = DA.paths.datasets.replace("dbfs:/", "/dbfs/")
