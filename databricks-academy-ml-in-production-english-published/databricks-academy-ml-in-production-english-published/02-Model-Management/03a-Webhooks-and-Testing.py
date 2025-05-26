@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md-sandbox
-# MAGIC 
+# MAGIC
 # MAGIC <div style="text-align: center; line-height: 0; padding-top: 9px;">
 # MAGIC   <img src="https://databricks.com/wp-content/uploads/2018/03/db-academy-rgb-1200px.png" alt="Databricks Learning" style="width: 600px">
 # MAGIC </div>
@@ -8,13 +8,13 @@
 # COMMAND ----------
 
 # MAGIC %md <i18n value="8a133a94-0841-46ab-ad14-c85a27948a3c"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC # MLflow Webhooks & Testing
-# MAGIC 
+# MAGIC
 # MAGIC Webhooks trigger the execution of code (oftentimes tests) upon some event. This lesson explores how to employ webhooks to trigger automated tests against models in the model registry. 
-# MAGIC 
+# MAGIC
 # MAGIC ## ![Spark Logo Tiny](https://files.training.databricks.com/images/105/logo_spark_tiny.png) In this lesson you will:<br>
 # MAGIC  - Explore the role of webhooks in ML pipelines
 # MAGIC  - Create a job to test models in the model registry
@@ -24,13 +24,13 @@
 # COMMAND ----------
 
 # MAGIC %md <i18n value="1889b8f8-0c82-4057-892b-fe894ba35f18"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ## Automated Testing
-# MAGIC 
+# MAGIC
 # MAGIC The backbone of the continuous integration, continuous deployment (CI/CD) process is the automated building, testing, and deployment of code. A **webhook or trigger** causes the execution of code based upon some event.  This is commonly when new code is pushed to a code repository.  In the case of machine learning jobs, this could be the arrival of a new model in the model registry.
-# MAGIC 
+# MAGIC
 # MAGIC The two types of <a href="https://docs.databricks.com/applications/mlflow/model-registry-webhooks.html" target="_blank">**MLflow Model Registry Webhooks**</a>:
 # MAGIC  - Webhooks with Job triggers: Trigger a job in a Databricks workspace
 # MAGIC  - Webhooks with HTTP endpoints: Send triggers to any HTTP endpoint
@@ -38,12 +38,12 @@
 # MAGIC This lesson uses:
 # MAGIC 1. a **Job webhook** to trigger the execution of a Databricks job 
 # MAGIC 2. a **HTTP webhook** to send notifications to Slack 
-# MAGIC 
+# MAGIC
 # MAGIC Upon the arrival of a new model version with a given name in the model registry, the function of the Databricks job is to:<br><br>
 # MAGIC - Import the new model version
 # MAGIC - Test the schema of its inputs and outputs
 # MAGIC - Pass example code through the model
-# MAGIC 
+# MAGIC
 # MAGIC This covers many of the desired tests for ML models.  However, throughput testing could also be performed using this paradigm. Also, the model could also be promoted to the production stage in an automated fashion.
 
 # COMMAND ----------
@@ -53,13 +53,13 @@
 # COMMAND ----------
 
 # MAGIC %md <i18n value="35f9b2a0-9429-4922-b14d-cccceb711222"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ## Create a Model and Job
-# MAGIC 
+# MAGIC
 # MAGIC The following steps will create a Databricks job using another notebook in this directory: **`03b-Webhooks-Job-Demo`**
-# MAGIC 
+# MAGIC
 # MAGIC **Note:** 
 # MAGIC * Ensure that you are an admin on this workspace and that you're not using Community Edition (which has jobs disabled). 
 # MAGIC * If you are not an admin, ask the instructor to share their token with you. 
@@ -68,13 +68,13 @@
 # COMMAND ----------
 
 # MAGIC %md <i18n value="bae3f327-645e-48fb-b920-a87d2a5cda23"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ### Create a user access token
-# MAGIC 
+# MAGIC
 # MAGIC Create a user access token using the following steps:<br><br>
-# MAGIC 
+# MAGIC
 # MAGIC 1. Click the Settings icon
 # MAGIC 1. Click User Settings
 # MAGIC 1. Go to the Access Tokens tab
@@ -82,21 +82,21 @@
 # MAGIC 1. Optionally enter a description (comment) and expiration period
 # MAGIC 1. Click the Generate button
 # MAGIC 1. Copy the generated token **and paste it in the following cell**
-# MAGIC 
+# MAGIC
 # MAGIC **Note:**
 # MAGIC * Ensure that you are an admin on this workspace and that you're not using Community Edition (which has jobs disabled). 
 # MAGIC * If you are not an admin, ask the instructor to share their token with you. 
 # MAGIC * Alternatively, you can set **`token = mlflow.utils.databricks_utils._get_command_context().apiToken().get()`**. However, this is not a best practice. We recommend you create your personal access token using the steps above and save it in your [secret scope](https://docs.databricks.com/security/secrets/secret-scopes.html). 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
 # MAGIC You can find details <a href="https://docs.databricks.com/dev-tools/api/latest/authentication.html" target="_blank">about access tokens here</a>
 
 # COMMAND ----------
 
 # TODO
-Paste your token below
- 
-token = "<insert your token here>" 
+# Paste your token below
+token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().getOrElse(None)
+# token = mlflow.utils.databricks_utils._get_command_context().apiToken().get()
 
 # COMMAND ----------
 
@@ -109,12 +109,16 @@ instance = mlflow.utils.databricks_utils.get_webapp_url()
 
 # COMMAND ----------
 
+instance
+
+# COMMAND ----------
+
 # MAGIC %md <i18n value="086b4385-9eae-492e-8ccd-52d68a97ad86"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ### Train and Register a Model
-# MAGIC 
+# MAGIC
 # MAGIC Build and log your model.
 
 # COMMAND ----------
@@ -145,9 +149,9 @@ with mlflow.start_run(run_name="Webhook RF Experiment") as run:
 # COMMAND ----------
 
 # MAGIC %md <i18n value="8f56343e-2a5f-4515-be64-047b07dcf877"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC Register the model
 
 # COMMAND ----------
@@ -161,48 +165,48 @@ model_details = mlflow.register_model(model_uri=model_uri, name=name)
 # COMMAND ----------
 
 # MAGIC %md <i18n value="02c615b7-dbf6-4e4a-8706-6c31cac2be68"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ### Creating the Job
-# MAGIC 
+# MAGIC
 # MAGIC The following steps will create a Databricks job using another notebook in this directory: **`03b-Webhooks-Job-Demo`**
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="b22313af-97a9-43d8-aaf6-57755b3d45da"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC Create a job that executes the notebook **`03b-Webhooks-Job-Demo`** in the same folder as this notebook.<br><br>
-# MAGIC 
+# MAGIC
 # MAGIC - Hover over the sidebar in the Databricks UI on the left.
-# MAGIC 
+# MAGIC
 # MAGIC <img src="https://files.training.databricks.com/images/ml-deployment/ClickWorkflows.png" alt="step12" width="150"/>
 # MAGIC <br></br>
-# MAGIC 
+# MAGIC
 # MAGIC - Click on Create Job
-# MAGIC 
+# MAGIC
 # MAGIC <img src="https://files.training.databricks.com/images/ml-deployment/CreateJob.png" alt="step12" width="750"/>
-# MAGIC 
+# MAGIC
 # MAGIC <br></br>
 # MAGIC - Name your Job
 # MAGIC - Select the notebook **`03b-Webhooks-Job-Demo`** 
 # MAGIC - Select the current cluster
-# MAGIC 
+# MAGIC
 # MAGIC <img src="https://files.training.databricks.com/images/ml-deployment/JobInfo.png" alt="step12" width="750"/>
-# MAGIC 
+# MAGIC
 # MAGIC <br></br>
 # MAGIC - Copy the Job ID
-# MAGIC 
+# MAGIC
 # MAGIC <img src="https://files.training.databricks.com/images/ml-deployment/JobID.png" alt="step12" width="450"/>
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="66dd2af1-92c3-406c-8fea-4d755700cd73"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC Alternatively, the code below will programmatically create the job.
 
 # COMMAND ----------
@@ -288,21 +292,21 @@ print(f"Job name: {job_name}")
 # COMMAND ----------
 
 # MAGIC %md <i18n value="15eeee0f-9472-4b7b-94b9-e728a7c9c38d"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ### Examine the Job
-# MAGIC 
+# MAGIC
 # MAGIC Take a look at [the notebook you just scheduled]($./03b-Webhooks-Job-Demo) to see what it accomplishes.
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="8c0aa70d-ab84-4e31-9ee4-2ab5d9fa6beb"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ## Create a Job Webhook
-# MAGIC 
+# MAGIC
 # MAGIC There are a few different events that can trigger a Webhook. In this notebook, we will be experimenting with triggering a job when our model transitions between stages.
 
 # COMMAND ----------
@@ -323,6 +327,7 @@ job_json = {"model_name": name,
                          "access_token": token}
            }
 
+
 response = http_request(
     host_creds=host_creds, 
     endpoint=endpoint,
@@ -334,17 +339,17 @@ assert response.status_code == 200, f"Expected HTTP 200, received {response.stat
 # COMMAND ----------
 
 # MAGIC %md <i18n value="965cfc78-c346-40d2-a328-d3d769a8c3e2"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC Now that we have registered the webhook, we can **test it by transitioning our model from stage `None` to `Staging` in the Experiment UI.** We should see in the Jobs tab that our Job has run.
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="dc8d88f1-f954-4cbf-86cd-4e4c13c198db"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC To get a list of active Webhooks, use a GET request with the LIST endpoint. Note that this command will return an error if no Webhooks have been created for the Model.
 
 # COMMAND ----------
@@ -363,15 +368,15 @@ print(json.dumps(response.json(), indent=4))
 # COMMAND ----------
 
 # MAGIC %md <i18n value="70e6903f-0d4e-423d-b4f8-aea6efd28ba5"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC Finally, delete the webhook by copying the webhook ID to the curl or python request. You can confirm that the Webhook was deleted by using the list request.
 
 # COMMAND ----------
 
 # TODO
-delete_hook = "<insert your webhook id here>"
+delete_hook = response.json()["webhooks"][0]["id"]
 
 # COMMAND ----------
 
@@ -391,15 +396,15 @@ print(json.dumps(response.json(), indent=4))
 # COMMAND ----------
 
 # MAGIC %md <i18n value="c02662e2-e03f-478a-a24a-d0e2961a29ef"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ## Create a HTTP webhook
-# MAGIC 
+# MAGIC
 # MAGIC This section requires that you have access to a Slack workspace and permissions to create a webhook. This design pattern also works with Teams or other endpoints that accept HTTP requests.
 # MAGIC  
 # MAGIC Set a Slack incoming webhook following <a href="https://api.slack.com/messaging/webhooks" target="_blank">this page</a>. Paste your webhook in the code below and uncomment the code. It should look like **`https://hooks.slack.com...`** Upon the arrival of a new model version with a given name in the model registry, it will send notifications to the slack channel.
-# MAGIC 
+# MAGIC
 # MAGIC Note that you can find more details on <a href="https://github.com/mlflow/mlflow/blob/master/mlflow/utils/rest_utils.py" target="_blank">the **`mlflow`** REST utility functions here.</a>
 
 # COMMAND ----------
@@ -434,9 +439,9 @@ print(json.dumps(response.json(), indent=4))
 # COMMAND ----------
 
 # MAGIC %md <i18n value="a2c7fb12-fd0b-493f-be4f-793d0a61695b"/>
-# MAGIC 
+# MAGIC
 # MAGIC ## Classroom Cleanup
-# MAGIC 
+# MAGIC
 # MAGIC Run the following cell to remove lessons-specific assets created during this lesson:
 
 # COMMAND ----------
@@ -446,22 +451,22 @@ DA.cleanup()
 # COMMAND ----------
 
 # MAGIC %md <i18n value="17f881f6-0404-4348-b6e3-1aa11b383343"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC Now that we have registered the webhook, we can **test it by transitioning our model from stage `None` to `Staging` in the Experiment UI.** We should see an incoming message in the associated slack channel. 
-# MAGIC 
+# MAGIC
 # MAGIC <img src="http://files.training.databricks.com/images/ml-deployment/webhook_slack.png" alt="webhook_notification" width="400"/>
 # MAGIC <br></br>
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="d9dbc19c-7c1d-4cae-a198-5c6266acf825"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ## Resources
-# MAGIC 
+# MAGIC
 # MAGIC - <a href="https://databricks.com/blog/2020/11/19/mlflow-model-registry-on-databricks-simplifies-mlops-with-ci-cd-features.html" target="_blank">See this blog for more details on CI/CD and webhooks</a>
 
 # COMMAND ----------

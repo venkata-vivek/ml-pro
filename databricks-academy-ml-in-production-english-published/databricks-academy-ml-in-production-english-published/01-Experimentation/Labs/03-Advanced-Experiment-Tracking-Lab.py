@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md-sandbox
-# MAGIC 
+# MAGIC
 # MAGIC <div style="text-align: center; line-height: 0; padding-top: 9px;">
 # MAGIC   <img src="https://databricks.com/wp-content/uploads/2018/03/db-academy-rgb-1200px.png" alt="Databricks Learning" style="width: 600px">
 # MAGIC </div>
@@ -8,11 +8,11 @@
 # COMMAND ----------
 
 # MAGIC %md <i18n value="d4db55e1-8962-4f27-b122-eeedd7089ae7"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC # Lab: Advanced Experiment Tracking
-# MAGIC 
+# MAGIC
 # MAGIC ## ![Spark Logo Tiny](https://files.training.databricks.com/images/105/logo_spark_tiny.png) In this lab you:<br>
 # MAGIC  - Manually log nested runs for hyperparameter tuning with <a href="https://www.mlflow.org/docs/latest/tracking.html" target="_blank">MLflow Tracking</a>
 # MAGIC  - Autolog nested runs using <a href="http://hyperopt.github.io/hyperopt/" target="_blank">hyperopt</a>
@@ -24,13 +24,13 @@
 # COMMAND ----------
 
 # MAGIC %md <i18n value="b0833c9c-68a1-4193-9740-2f4e02d299a5"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ## Manual Hyperparameter Tuning
-# MAGIC 
+# MAGIC
 # MAGIC Create an mlflow run structured in the following way:
-# MAGIC 
+# MAGIC
 # MAGIC * Create a parent run named **`parent`**
 # MAGIC * In this parent run:
 # MAGIC   * Train a sklearn RandomForestRegressor on **`X_train`** and **`y_train`**
@@ -74,29 +74,30 @@ with mlflow.start_run(run_name="parent") as run:
     signature = infer_signature(X_train, pd.DataFrame(y_train))
     input_example = X_train.head(3)
   
-    with mlflow.start_run(run_name="child_1", nested=#FILL_IN):
+    with mlflow.start_run(run_name="child_1", nested=True):
         max_depth = 5
         rf = RandomForestRegressor(random_state=42, max_depth=max_depth)
         rf_model = rf.fit(X_train, y_train)
         mse = mean_squared_error(rf_model.predict(X_test), y_test)
         ## log the max_depth parameter                  
-        # FILL_IN
+        mlflow.log_param('max_depth', max_depth)
         ## log the mse metric
-        # FILL_IN
+        mlflow.log_metric('mse', mse)
         ## log model
-        # FILL_IN
+        mlflow.sklearn.log_model(rf_model, "model", signature=signature, input_example=input_example)
 
-    with mlflow.start_run(run_name="child_2", nested=#FILL_IN):
+    with mlflow.start_run(run_name="child_2", nested=True):
         max_depth = 10
         rf = RandomForestRegressor(random_state=42, max_depth=max_depth)
         rf_model = rf.fit(X_train, y_train)
         mse = mean_squared_error(rf_model.predict(X_test), y_test)
         ## log the max_depth parameter                  
-        # FILL_IN
+        mlflow.log_param('max_depth', max_depth)
         ## log the mse metric
-        # FILL_IN
+        mlflow.log_metric('mse', mse)
         ## log model
-        # FILL_IN
+        mlflow.sklearn.log_model(rf_model, "model", signature=signature, input_example=input_example)
+        
 
         # Generate feature importance plot
         feature_importances = pd.Series(rf_model.feature_importances_, index=X.columns)
@@ -106,20 +107,21 @@ with mlflow.start_run(run_name="parent") as run:
         ax.set_ylabel("Mean decrease in impurity")
 
         # Log figure
-        # FILL_IN
+        mlflow.log_figure(fig, "feature_importances.png")
+
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="ef7fafd4-ac6f-4e20-8ae0-e427e372ce92"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ## Autologging with Hyperopt
-# MAGIC 
+# MAGIC
 # MAGIC In this exercise, you will use HyperOpt to tune the hyperparameters of an sklearn random forest model. 
-# MAGIC 
+# MAGIC
 # MAGIC For this exercise:
-# MAGIC 
+# MAGIC
 # MAGIC 1. Use HyperOpt to tune **`n_estimators`** and **`max_depth`** in a sklearn random forest.
 # MAGIC   * **`n_estimators`**: Use 50-500, in steps of 10
 # MAGIC     * Take a look at the <a href="http://hyperopt.github.io/hyperopt/getting-started/search_spaces/" target="_blank">docs</a> to find the correct distribution to use
@@ -129,7 +131,7 @@ with mlflow.start_run(run_name="parent") as run:
 # MAGIC   * **`max_evals`**: 16
 # MAGIC 2. Find the nested runs in the MLflow UI
 # MAGIC 3. Generate the Parallel Coordinates Plot as shown in the lesson on your nested runs. 
-# MAGIC 
+# MAGIC
 # MAGIC **Note:** You will need to select all nested runs and hit compare in the MLflow UI. If you select the bottom-most nested run and then shift-click the top-most nested run, you will select all of them.
 
 # COMMAND ----------
@@ -140,39 +142,90 @@ from hyperopt import fmin, tpe, hp, SparkTrials
 # Define objective function
 def objective(params):
     # build a Random Forest Regressor with hyperparameters
-    model = RandomForestRegressor(#FILL_IN)
+    model = RandomForestRegressor(n_estimators=int(params["n_estimators"]), max_depth=int(params["max_depth"]), random_state=42)
 
     # fit model with training data
     model.fit(X_train, y_train)
 
     # predict on testing data
-    pred = model.predict(#FILL_IN)
+    pred = model.predict(X_train)
 
     # compute mean squared error
-    score = #FILL_IN
+    score = mean_squared_error(pred, y_train)
     return score
 
 # COMMAND ----------
 
 # TODO
 # Define search space
-search_space = #FILL_IN
+search_space = {
+    "n_estimators": hp.quniform("n_estimators", 50, 500, 10),
+    "max_depth": hp.quniform("max_depth", 5, 15, 1)
+}
 
 # Set algorithm type
 algo = tpe.suggest
 # Create SparkTrials object
-spark_trials = SparkTrials(parallelism=#FILL_IN)
+spark_trials = SparkTrials(parallelism=2)
 
 # start run
 with mlflow.start_run(run_name="Hyperopt"):
-    argmin = fmin(#FILL_IN)
+    argmin = fmin(
+        fn=objective,
+        space=search_space,
+        algo=algo,
+        max_evals=16,
+        trials=spark_trials,
+    )
+
+# COMMAND ----------
+
+argmin
+
+# COMMAND ----------
+
+# Train with the best model paramters
+# Extract the best hyperparameters
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+best_params = {
+    "n_estimators": int(argmin["n_estimators"]),
+    "max_depth": int(argmin["max_depth"])
+}
+
+# Train the final model with the best hyperparameters
+final_model = RandomForestRegressor(**best_params, random_state=42)
+final_model.fit(X_train, y_train)
+
+# Predict on the test set
+final_predictions = final_model.predict(X_test)
+
+# Evaluate the final model
+final_mse = mean_squared_error(y_test, final_predictions)
+final_mae = mean_absolute_error(y_test, final_predictions)
+final_r2 = r2_score(y_test, final_predictions)
+
+# Log the final model and metrics
+with mlflow.start_run(run_name="Final Model"):
+    mlflow.sklearn.log_model(final_model, "random_forest_model")
+    mlflow.log_params(best_params)
+    mlflow.log_metrics({
+        "mse": final_mse,
+        "mae": final_mae,
+        "r2": final_r2
+    })
+
+# Display the best hyperparameters and final metrics
+print("Best Hyperparameters:", best_params)
+print("Final MSE:", final_mse)
+print("Final MAE:", final_mae)
+print("Final R2:", final_r2)
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="a2c7fb12-fd0b-493f-be4f-793d0a61695b"/>
-# MAGIC 
+# MAGIC
 # MAGIC ## Classroom Cleanup
-# MAGIC 
+# MAGIC
 # MAGIC Run the following cell to remove lessons-specific assets created during this lesson:
 
 # COMMAND ----------

@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md-sandbox
-# MAGIC 
+# MAGIC
 # MAGIC <div style="text-align: center; line-height: 0; padding-top: 9px;">
 # MAGIC   <img src="https://databricks.com/wp-content/uploads/2018/03/db-academy-rgb-1200px.png" alt="Databricks Learning" style="width: 600px">
 # MAGIC </div>
@@ -12,36 +12,36 @@
 # COMMAND ----------
 
 # MAGIC %md <i18n value="90df02e3-24c6-4bc6-99db-31417257255f"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC # Drift Monitoring Lab
-# MAGIC 
+# MAGIC
 # MAGIC In this lab, you will look at simulated data for an ice cream shop. This data contains a first and second period of data, like we saw in the previous lesson. Your job is to use the techniques you just learned to identify any potential drift occuring across the two time periods. 
-# MAGIC 
+# MAGIC
 # MAGIC The data contains the following columns:
-# MAGIC 
+# MAGIC
 # MAGIC **Numeric:**
 # MAGIC * **`temperature`**: The temperature on the given day
 # MAGIC * **`number_of_cones_sold`**: The number of ice cream cones sold on the given day
 # MAGIC * **`number_bowls_sold`**: The number of bowls sold, as opposed to cones
 # MAGIC * **`total_store_sales`**: The total amount of money in sales done by the other, non ice cream products at the shop.
 # MAGIC * **`total_sales_predicted`**: Our imaginary model's prediction for the total_store_sales that day. 
-# MAGIC 
+# MAGIC
 # MAGIC **Categorical:**
 # MAGIC * **`most_popular_ice_cream_flavor`**: The most popular ice cream flavor on a given day
 # MAGIC * **`most_popular_sorbet_flavor`**: The most popular sorbet flavor on a given day
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
 # MAGIC In this situation, we have an imaginary model attempting to predict the total sales at the store of other, non ice cream items at the store, such as t-shirts or other merchandise. 
 # MAGIC Given the first and second time period of simulated data, identify any potential drift and analyze how you might handle it.
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="41653424-6d5b-4214-b16f-bf5c6fe8e284"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC Let's take a look at the first time period ice cream dataframe!
 
 # COMMAND ----------
@@ -51,11 +51,11 @@ df1.head()
 # COMMAND ----------
 
 # MAGIC %md <i18n value="e608da11-41af-42db-a6ef-95e26e17e530"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC You will try to identify the forms of simulated drift in this dataset. The dataset was changed in the following ways:
-# MAGIC 
+# MAGIC
 # MAGIC 1. An upstream data management error converted Fahrenheit to Celsius
 # MAGIC 2. The number of cones sold stayed constant
 # MAGIC 3. The most popular flavor of ice cream distribution changed, but no nulls were introduced
@@ -63,15 +63,15 @@ df1.head()
 # MAGIC 5. The most popular sorbet flavors had nulls introduced, and although they are still evenly distributed, the counts thus changed
 # MAGIC 6. The **`total_store_sales`** of other, non ice cream merchandise, increased
 # MAGIC 7. The prediction of **`total_store_sales`** decreased
-# MAGIC 
+# MAGIC
 # MAGIC Keep these changes in mind and see how we would detect them using the tools we have learned.
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="132cbccb-ebd5-40fa-b0a0-f0c829fe2779"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC Let's take a look at the second time period ice cream dataframe!
 
 # COMMAND ----------
@@ -81,9 +81,9 @@ df2.head()
 # COMMAND ----------
 
 # MAGIC %md <i18n value="e9e9c8c7-8904-45d1-be3a-e8ff188656b8"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC We have defined a **`Monitor`** class for you. Please invoke it below to answer the following questions.
 
 # COMMAND ----------
@@ -196,9 +196,9 @@ class Monitor():
 # COMMAND ----------
 
 # MAGIC %md <i18n value="b181cd42-1406-4bf8-8dc6-77a9e9f60cdd"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC Create a **`Monitor`** object based on our first and second period of ice cream data to identify drift.
 
 # COMMAND ----------
@@ -215,28 +215,30 @@ drift_monitor = Monitor(
 # COMMAND ----------
 
 # MAGIC %md <i18n value="24755f69-2a0e-45ba-a1f3-b45871e25dbb"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ### Summary Statistics
-# MAGIC 
+# MAGIC
 # MAGIC Look over and compare some of the data and their summary stats. Use the **`drift_monitor`** class to generate the null counts. Does anything jump out at you?
 
 # COMMAND ----------
 
 # TODO
+drift_monitor.generate_null_counts()
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="52effbfd-a185-4d1e-a711-fe5997db94ed"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC Use the **`drift_monitor`** class to generate percent changes. Does anything jump out at you?
 
 # COMMAND ----------
 
 # TODO
+drift_monitor.generate_percent_change()
 
 # COMMAND ----------
 
@@ -246,31 +248,32 @@ drift_monitor = Monitor(
 # COMMAND ----------
 
 # MAGIC %md <i18n value="29aaae05-cbd2-4515-b483-3b7224bf6187"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ### Statistical Tests
-# MAGIC 
+# MAGIC
 # MAGIC Now let's try the Jensen Shannon and Two-Way Chi-Squared Test with Bonferroni Correction. 
-# MAGIC 
+# MAGIC
 # MAGIC Both of these are implemented for you when you call **`drift_monitor.run()`**. It will print a feature name if a statisitically significant p-value was found by the respective test on that feature or if the JS stat is above our predetermined threshold.
-# MAGIC 
+# MAGIC
 # MAGIC Examine the results and compare them to the changes we made.
 
 # COMMAND ----------
 
 # TODO
+drift_monitor.run()
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="063891c2-6b81-47ec-8a01-76511bb52349"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ### Closer Look
-# MAGIC 
+# MAGIC
 # MAGIC ***Using these summary statistics and statistical tests were we able to catch all of our drift?***
-# MAGIC 
+# MAGIC
 # MAGIC Imagine you were running this ice cream shop:
 # MAGIC * ***How would you handle each situation?***
 # MAGIC * ***How would it affect our model or the business?***
