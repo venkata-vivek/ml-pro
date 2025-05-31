@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md-sandbox
-# MAGIC 
+# MAGIC
 # MAGIC <div style="text-align: center; line-height: 0; padding-top: 9px;">
 # MAGIC   <img src="https://databricks.com/wp-content/uploads/2018/03/db-academy-rgb-1200px.png" alt="Databricks Learning" style="width: 600px">
 # MAGIC </div>
@@ -8,13 +8,13 @@
 # COMMAND ----------
 
 # MAGIC %md <i18n value="83ffb2a6-b450-4c59-91ed-76ab4d972ae2"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC # Lab: Deploying a Model in Batch
 # MAGIC Deploying a model via batch is the preferred solution for most machine learning applications. In this lab, you will scale the deployment of a single-node model via Spark UDFs and MLflow's **`pyfunc`**. 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
 # MAGIC ## ![Spark Logo Tiny](https://files.training.databricks.com/images/105/logo_spark_tiny.png) In this lab you:<br>
 # MAGIC  - Develop and register an MLflow model
 # MAGIC  - Deploy the model as a Spark UDF
@@ -35,13 +35,13 @@ df = (spark
 # COMMAND ----------
 
 # MAGIC %md <i18n value="4bceb653-c1e7-44c5-acb4-0cce746fbad2"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ### Develop and Register an MLflow Model
-# MAGIC 
+# MAGIC
 # MAGIC In this exercise, you will build, log, and register an XGBoost model using Scikit-learn and MLflow.
-# MAGIC 
+# MAGIC
 # MAGIC This model will predict the **`price`** variable using **`bathrooms`**, **`bedrooms`**, and **`number_of_reviews`** as features.
 
 # COMMAND ----------
@@ -84,21 +84,21 @@ model_details = mlflow.register_model(model_uri=model_uri, name=model_name)
 # COMMAND ----------
 
 # MAGIC %md <i18n value="922f29ae-e6a6-4e8a-8793-acbddfb2e22e"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ### Deploy Model as a Spark UDF
-# MAGIC 
+# MAGIC
 # MAGIC Next, you will compute predictions for your model using a Spark UDF.
 
 # COMMAND ----------
 
 # TODO
 # Create the prediction UDF
-predict = #FILL_IN
+predict = mlflow.pyfunc.spark_udf(spark, model_uri)
 
 # Compute the predictions
-prediction_df = df.withColumn("prediction", #FILL_IN)
+prediction_df = df.withColumn("prediction", predict(*[col for col in df.columns if col != "price"]))
              
 
 # View the results
@@ -107,9 +107,9 @@ display(prediction_df)
 # COMMAND ----------
 
 # MAGIC %md <i18n value="a2c7fb12-fd0b-493f-be4f-793d0a61695b"/>
-# MAGIC 
+# MAGIC
 # MAGIC ## Classroom Cleanup
-# MAGIC 
+# MAGIC
 # MAGIC Run the following cell to remove lessons-specific assets created during this lesson:
 
 # COMMAND ----------
@@ -119,11 +119,11 @@ DA.cleanup()
 # COMMAND ----------
 
 # MAGIC %md <i18n value="ef89080b-4557-4b95-8e0a-1aa6b53e8e8b"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ## ![Spark Logo Tiny](https://files.training.databricks.com/images/105/logo_spark_tiny.png) Next Lesson<br>
-# MAGIC 
+# MAGIC
 # MAGIC Start the next lesson, [Real Time]($../02-Real-Time)
 
 # COMMAND ----------
