@@ -191,6 +191,7 @@ input_json = {"inputs": input_json}
 import requests
 from requests.exceptions import ConnectionError
 from time import sleep
+import json
 
 headers = {"Content-type": "application/json"}
 url = f"http://{host_name}:{server_port_number}/invocations"

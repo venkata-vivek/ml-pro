@@ -465,6 +465,10 @@ dbutils.data.summarize(pdf2)
 
 # COMMAND ----------
 
+pdf1.describe()
+
+# COMMAND ----------
+
 # MAGIC %md <i18n value="90a1c03a-c124-43bb-8083-2abf0fd778a9"/>
 # MAGIC
 # MAGIC

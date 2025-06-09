@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md-sandbox
-# MAGIC 
+# MAGIC
 # MAGIC <div style="text-align: center; line-height: 0; padding-top: 9px;">
 # MAGIC   <img src="https://databricks.com/wp-content/uploads/2018/03/db-academy-rgb-1200px.png" alt="Databricks Learning" style="width: 600px">
 # MAGIC </div>
@@ -8,12 +8,12 @@
 # COMMAND ----------
 
 # MAGIC %md <i18n value="54771b4e-fe73-4edb-8d87-9d9d4c2d7170"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC # Lab: Deploying a Real-time Model with MLflow Model Serving
 # MAGIC MLflow Model Serving offers a fast way of serving pre-calculated predictions or creating predictions in real time. In this lab, you'll deploy a model using MLflow Model Serving.
-# MAGIC 
+# MAGIC
 # MAGIC ## ![Spark Logo Tiny](https://files.training.databricks.com/images/105/logo_spark_tiny.png) In this lab you:<br>
 # MAGIC  - Enable MLflow Model Serving for your registered model
 # MAGIC  - Compute predictions in real time for your registered model via a REST API request
@@ -27,11 +27,11 @@
 # COMMAND ----------
 
 # MAGIC %md <i18n value="ad24ef8d-031e-435c-a1e0-e64de81b936d"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC To start this off, we will need to load the data, build a model, and register that model.
-# MAGIC 
+# MAGIC
 # MAGIC <img src="https://files.training.databricks.com/images/icon_note_24.png"/> We're building a random forest model to predict Airbnb listing prices.
 
 # COMMAND ----------
@@ -77,9 +77,9 @@ model_version = model_details.version
 # COMMAND ----------
 
 # MAGIC %md <i18n value="e3d6be06-1cc5-4ca6-9d81-ec237bba01bc"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC Next, we will transition to model to staging.
 
 # COMMAND ----------
@@ -94,27 +94,27 @@ client.transition_model_version_stage(
 # COMMAND ----------
 
 # MAGIC %md <i18n value="ad504f00-8d56-4ab4-aa94-6172107a1934"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ## Enable MLflow Model Serving for the Registered Model
-# MAGIC 
+# MAGIC
 # MAGIC Your first task is to enable MLflow Model Serving for the model that was just registered.
-# MAGIC 
+# MAGIC
 # MAGIC <img src="https://files.training.databricks.com/images/icon_hint_24.png"/>&nbsp;**Hint:** Check out the <a href="https://docs.databricks.com/applications/mlflow/model-serving.html#enable-and-disable-model-serving" target="_blank">documentation</a> for a demo of how to enable model serving via the UI.
-# MAGIC 
+# MAGIC
 # MAGIC <img src="http://files.training.databricks.com/images/mlflow/demo_model_register.png" width="600" height="20"/>
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="44b586ec-ac4f-4a71-9c27-cc6ac5111ec8"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC ## Compute Real-time Predictions
-# MAGIC 
+# MAGIC
 # MAGIC Now that your model is registered, you will query the model with inputs.
-# MAGIC 
+# MAGIC
 # MAGIC To do this, you'll first need the appropriate token and api_url.
 
 # COMMAND ----------
@@ -133,9 +133,9 @@ print(api_url)
 # COMMAND ----------
 
 # MAGIC %md <i18n value="cd88b865-b030-48f1-83f5-0f2f872cc757"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC Enable the endpoint
 
 # COMMAND ----------
@@ -150,7 +150,7 @@ assert r.status_code == 200, f"Expected an HTTP 200 response, received {r.status
 # COMMAND ----------
 
 # MAGIC %md <i18n value="3b7cf885-1789-49ac-be65-f61a9f8752d5"/>
-# MAGIC 
+# MAGIC
 # MAGIC We can redefine our two wait methods to ensure that the resources are ready before moving forward.
 
 # COMMAND ----------
@@ -183,7 +183,7 @@ def wait_for_version():
 # COMMAND ----------
 
 # MAGIC %md <i18n value="2e33d989-988d-4673-853f-c7e0e568b3f9"/>
-# MAGIC 
+# MAGIC
 # MAGIC Next, create a function that takes a single record as input and returns the predicted value from the endpoint.
 
 # COMMAND ----------
@@ -195,7 +195,7 @@ def score_model(dataset: pd.DataFrame, model_name: str, token: str, api_url: str
     url = f"{api_url}/model/{model_name}/1/invocations"
     ds_dict = dataset.to_dict(orient="split")
 
-    response = <FILL_IN>
+    response = requests.request(method="POST", headers={"Authorization": f"Bearer {token}"}, url=url, json=ds_dict)
 
     if response.status_code != 200:
         raise Exception(f"Request failed with status {response.status_code}, {response.text}")
@@ -204,9 +204,9 @@ def score_model(dataset: pd.DataFrame, model_name: str, token: str, api_url: str
 # COMMAND ----------
 
 # MAGIC %md <i18n value="ae8b57cb-67fe-4d36-91c2-ce4ec405e38e"/>
-# MAGIC 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC
 # MAGIC Now, use that function to score a single row of a Pandas DataFrame.
 
 # COMMAND ----------
@@ -219,14 +219,15 @@ wait_for_version()
 # TODO
 
 single_row_df = pd.DataFrame([[2, 2, 150]], columns=["bathrooms", "bedrooms", "number_of_reviews"])
-<FILL_IN>
+predictions = score_model(single_row_df, model_name, token, api_url)
+print(predictions)
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="629fa869-2f79-402d-bb4e-ba6495dfed34"/>
-# MAGIC 
+# MAGIC
 # MAGIC ### Notes on request format and API versions
-# MAGIC 
+# MAGIC
 # MAGIC The model serving endpoint accepts a JSON object as input.
 # MAGIC ```
 # MAGIC {
@@ -235,7 +236,7 @@ single_row_df = pd.DataFrame([[2, 2, 150]], columns=["bathrooms", "bedrooms", "n
 # MAGIC   "data": [[2, 2, 150]]
 # MAGIC } 
 # MAGIC ```
-# MAGIC 
+# MAGIC
 # MAGIC With Databricks Serverless Real-Time Inference, the endpoint takes a different body format:
 # MAGIC ```
 # MAGIC {
@@ -244,15 +245,15 @@ single_row_df = pd.DataFrame([[2, 2, 150]], columns=["bathrooms", "bedrooms", "n
 # MAGIC   ]
 # MAGIC }
 # MAGIC ```
-# MAGIC 
+# MAGIC
 # MAGIC Databricks Serverless Real-Time Inference is in preview; to enroll, follow the [instructions](https://docs.microsoft.com/azure/databricks/applications/mlflow/migrate-and-enable-serverless-real-time-inference#enable-serverless-real-time-inference-for-your-workspace).
 
 # COMMAND ----------
 
 # MAGIC %md <i18n value="a2c7fb12-fd0b-493f-be4f-793d0a61695b"/>
-# MAGIC 
+# MAGIC
 # MAGIC ## Classroom Cleanup
-# MAGIC 
+# MAGIC
 # MAGIC Run the following cell to remove lessons-specific assets created during this lesson:
 
 # COMMAND ----------
