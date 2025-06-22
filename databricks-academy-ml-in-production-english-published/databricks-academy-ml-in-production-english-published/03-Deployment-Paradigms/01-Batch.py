@@ -175,7 +175,7 @@ def predict(*cols):
     # Your prediction logic here
     # For example, summing all columns
     # return sum(cols)
-    cols_int = [col for col in cols if isinstance(col, int)]
+    cols_int = [float(c) for c in cols]
     
     # Return the sum of the integer columns
     return sum(cols_int)

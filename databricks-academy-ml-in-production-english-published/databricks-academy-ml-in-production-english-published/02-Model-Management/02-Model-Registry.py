@@ -69,6 +69,12 @@
 
 # COMMAND ----------
 
+import pandas as pd
+df = pd.read_parquet(f"{DA.paths.datasets_path}/airbnb/sf-listings/airbnb-cleaned-mlflow.parquet")
+display(df)
+
+# COMMAND ----------
+
 import mlflow
 import mlflow.sklearn
 import pandas as pd
@@ -220,6 +226,12 @@ client.transition_model_version_stage(
     name=model_details.name,
     version=model_details.version,
     stage="Production"
+)
+
+client.update_model_version(
+    name = model_details.name,
+    version=model_details.version,
+    description="This is for production"
 )
 
 # COMMAND ----------

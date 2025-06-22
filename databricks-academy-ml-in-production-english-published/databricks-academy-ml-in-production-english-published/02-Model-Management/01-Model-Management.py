@@ -435,6 +435,10 @@ loaded_preprocess_model = mlflow.pyfunc.load_model(mlflow_pyfunc_model_path)
 
 # COMMAND ----------
 
+loaded_preprocess_model.metadata.to_dict()
+
+# COMMAND ----------
+
 # MAGIC %md <i18n value="f3485479-06db-4403-bc76-94b02a959a6b"/>
 # MAGIC
 # MAGIC
