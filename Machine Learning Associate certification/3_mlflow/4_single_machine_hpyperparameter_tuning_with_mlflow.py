@@ -19,12 +19,13 @@ print(y)
 # COMMAND ----------
 
 def optimize(C):
-    clf = SVC(C = C)
+    with mlflow.start_run(nested=True):
+        clf = SVC(C = C)
 
-    # Use the cross validation object to compare the model's performance
-    accuracy = cross_val_score(clf, X, y).mean()
+        # Use the cross validation object to compare the model's performance
+        accuracy = cross_val_score(clf, X, y).mean()
 
-    return {'loss': -accuracy, 'status': STATUS_OK}
+        return {'loss': -accuracy, 'status': STATUS_OK}
 
 
 # COMMAND ----------
@@ -42,12 +43,13 @@ algo = tpe.suggest
 
 # COMMAND ----------
 
-argmin = fmin(
-    fn= optimize,
-    space=search_space,
-    algo=algo,
-    max_evals = 16
-)
+with mlflow.start_run():
+    argmin = fmin(
+        fn= optimize,
+        space=search_space,
+        algo=algo,
+        max_evals = 16
+    )
 
 # COMMAND ----------
 

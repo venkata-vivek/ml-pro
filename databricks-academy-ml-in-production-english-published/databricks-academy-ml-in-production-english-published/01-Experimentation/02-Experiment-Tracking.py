@@ -154,6 +154,10 @@ with mlflow.start_run(run_name="Basic RF Run") as run:
 
 # COMMAND ----------
 
+run.inputs
+
+# COMMAND ----------
+
 # MAGIC %md-sandbox <i18n value="5350e1fc-0670-4e81-b747-524ca465bae7"/>
 # MAGIC
 # MAGIC
@@ -246,7 +250,7 @@ def log_rf(experiment_id, run_name, params, X_train, X_test, y_train, y_test):
 
 params = {
     "n_estimators": 100,
-    "max_depth": 5
+    "max_depth": 5,
     "random_state": 42
 }
 

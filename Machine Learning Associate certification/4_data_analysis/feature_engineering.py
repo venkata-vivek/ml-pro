@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
-df_path = "file:/Workspace/Users/wuppukonduruvv@delagelanden.com/Databricks-Certified-Machine-Learning-Associate-and-Professional/Machine Learning Associate certification/4_data_analysis/housing.csv"
+df_path = "file:/Workspace/Users/wuppukonduruvv/ml-pro/Machine Learning Associate certification/4_data_analysis/housing.csv"
 
 
 # COMMAND ----------

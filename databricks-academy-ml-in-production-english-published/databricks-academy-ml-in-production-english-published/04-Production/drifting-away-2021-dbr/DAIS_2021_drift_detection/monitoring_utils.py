@@ -18,6 +18,7 @@ def check_null_proportion(new_pdf, null_proportion_threshold):
   :param null_proportion_threshold: (float) A numeric value ranging from 0 and 1 that specifies the tolerable fraction of nulls. 
   """
   missing_stats = pd.DataFrame(new_pdf.isnull().sum() / len(new_pdf)).transpose()
+  print(f"missing_stats is {missing_stats}")
   null_dict = {}
   null_col_list = missing_stats.columns[(missing_stats >= null_proportion_threshold).iloc[0]]
   for feature in null_col_list:

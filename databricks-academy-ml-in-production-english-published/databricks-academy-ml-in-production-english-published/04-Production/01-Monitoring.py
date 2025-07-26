@@ -402,6 +402,10 @@ calculate_js_distance(p, q, raw_distribution_1, raw_distribution_2, threshold=0.
 
 # COMMAND ----------
 
+
+
+# COMMAND ----------
+
 # Load Dataset
 airbnb_pdf = pd.read_parquet(f"{DA.paths.datasets_path}/airbnb/sf-listings/airbnb-cleaned-mlflow.parquet/")
 
@@ -574,6 +578,7 @@ for feature in cat_cols:
     pdf_counts = pdf_count1.join(pdf_count2, how="outer").fillna(0)
     # pdf_counts.display()
     obs = np.array([pdf_counts["pdf1"], pdf_counts["pdf2"]])
+    # print(obs)
     _, p, _, _ = stats.chi2_contingency(obs)
     if p < corrected_alpha:
         print(f"{feature} statistically significantly changed")

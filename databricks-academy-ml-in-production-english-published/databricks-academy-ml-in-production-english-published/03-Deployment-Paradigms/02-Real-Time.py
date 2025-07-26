@@ -100,7 +100,7 @@ import pandas as pd
 
 class TestModel(mlflow.pyfunc.PythonModel):
   
-    def predict(self, context, input_df):
+    def predict(self, context, model_input):
         return 5
 
 model_run_name="pyfunc-model"
@@ -368,12 +368,12 @@ response_list = requests.get(url_list, headers=headers)
 print(f"List Status: {response_list.status_code}")
 print(f"List Value:  {response_list.text}")
 
-# Delete endpoint
-endpoint_name = "demo-model_wuppukonduruvv-g0kn-da-mlp"  # Replace with the actual endpoint name
-url_delete = f"{api_url}/api/2.0/mlflow/endpoints/delete"
-response_delete = requests.post(url_delete, headers=headers, json={"registered_model_name": endpoint_name})
-print(f"Delete Status: {response_delete.status_code}")
-print(f"Delete Value:  {response_delete.text}")
+# # Delete endpoint
+# endpoint_name = "demo-model_wuppukonduruvv-g0kn-da-mlp"  # Replace with the actual endpoint name
+# url_delete = f"{api_url}/api/2.0/mlflow/endpoints/delete"
+# response_delete = requests.post(url_delete, headers=headers, json={"registered_model_name": endpoint_name})
+# print(f"Delete Status: {response_delete.status_code}")
+# print(f"Delete Value:  {response_delete.text}")
 
 # COMMAND ----------
 

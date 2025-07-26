@@ -164,6 +164,18 @@ model_details = mlflow.register_model(model_uri=model_uri, name=name)
 
 # COMMAND ----------
 
+model_details
+
+# COMMAND ----------
+
+mlflow.pyfunc.load_model(f"models:/{model_details.name}/{model_details.version}")
+
+# COMMAND ----------
+
+mlflow.pyfunc.load_model(f"runs:/{run_id}/random-forest-model")
+
+# COMMAND ----------
+
 # MAGIC %md <i18n value="02c615b7-dbf6-4e4a-8706-6c31cac2be68"/>
 # MAGIC
 # MAGIC
@@ -324,8 +336,13 @@ job_json = {"model_name": name,
             "status": "Active",
             "job_spec": {"job_id": job_id,
                          "workspace_url": instance,
-                         "access_token": token}
-           }
+                         "access_token": token,
+                         "notebook_params":{
+                             "event_message":{
+                                           "model_name": name,
+                                           "model_version": "1",
+                                           "random_param":"random-test"}}
+           }}
 
 
 response = http_request(
@@ -361,9 +378,23 @@ response = http_request(
     endpoint=endpoint,
     method="GET"
 )
+
+print(response.json())
 assert response.status_code == 200, f"Expected HTTP 200, received {response.status_code}"
 
-print(json.dumps(response.json(), indent=4))
+# webhooks = response.json().get("webhooks", [])
+# for hook in webhooks:
+#     del_json = {"id": hook["id"]}
+#     del_endpoint = "/api/2.0/mlflow/registry-webhooks/delete"
+#     del_response = http_request(
+#         host_creds=host_creds,
+#         endpoint=del_endpoint,
+#         method="DELETE",
+#         json=del_json
+#     )
+#     assert del_response.status_code == 200, f"Expected HTTP 200, received {del_response.status_code}"
+
+# display(webhooks)
 
 # COMMAND ----------
 

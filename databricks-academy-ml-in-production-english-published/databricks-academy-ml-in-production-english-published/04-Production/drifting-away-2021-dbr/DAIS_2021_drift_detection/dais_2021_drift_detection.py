@@ -57,10 +57,6 @@
 
 # COMMAND ----------
 
-
-
-# COMMAND ----------
-
 # MAGIC %run ./training_setup
 
 # COMMAND ----------
@@ -113,6 +109,10 @@ month_0_df.withColumn("month", F.lit("month_0")).write.format("delta").partition
 
 # COMMAND ----------
 
+spark.read.format("delta").load(gold_delta_path).display()
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC #### ii. Model Training
 
@@ -134,7 +134,7 @@ misc_params = {"month": month,
                "target_col": target_col,
                "cat_cols": cat_cols,
                "num_cols": num_cols}
-
+print(misc_params)
 # Trigger model training and logging to MLflow
 month_0_run = train_sklearn_rf_model(run_name, 
                                      gold_delta_path, 
@@ -253,6 +253,10 @@ unique_feature_diff_array_month_1
 
 print(f"Let's look at the box plots of the features that exceed the stats_threshold_limit of {stats_threshold_limit}")
 plot_boxplots(unique_feature_diff_array_month_1, current_prod_pdf_1, month_1_err_pdf)
+
+# COMMAND ----------
+
+
 
 # COMMAND ----------
 
@@ -474,6 +478,10 @@ check_categorical_diffs(current_prod_pdf_2, month_2_pdf, cat_cols, p_threshold)
 
 # COMMAND ----------
 
+month_2_df
+
+# COMMAND ----------
+
 # Append the new month of data (where listings are most expensive across the board)
 month_2_df.withColumn("month", F.lit("month_2")).write.format("delta").partitionBy("month").mode("append").save(gold_delta_path)
 
@@ -540,6 +548,40 @@ compare_model_perfs(current_staging_run_2, current_prod_run_2, min_model_r2_thre
 # MAGIC %md
 # MAGIC
 # MAGIC In this case we note that the new candidate model in Staging performs notably worse than the current model in Production. We know from our checks prior to training that the label has drifted, and that this was due to new listing prices being recorded during vacation season. At this point we would want to prevent a migration of the new candidate model directly to Production and instead investigate if there is any way we can improve model performance. This could involve tuning the hyperparameters of our model, or additionally investigating the inclusion of additional features such as "month of the year" which could allow us to capture temporal impacts to listing prices.
+
+# COMMAND ----------
+
+import json
+json.dumps({"inputs": month_2_pdf.loc[1].to_frame().T.to_dict(orient="split")})
+
+# COMMAND ----------
+
+os.environ['DATABRICKS_TOKEN'] = ""
+
+# COMMAND ----------
+
+import os
+import requests
+import numpy as np
+import pandas as pd
+import json
+
+def create_tf_serving_json(data):
+    return {'inputs': {name: data[name].tolist() for name in data.keys()} if isinstance(data, dict) else data.tolist()}
+
+def score_model(dataset):
+    url = 'https://adb-1256635994927447.7.azuredatabricks.net/serving-endpoints/airbnb-hw/served-models/airbnb_hawaii-3/invocations'
+    headers = {'Authorization': f'Bearer {os.environ.get("DATABRICKS_TOKEN")}', 'Content-Type': 'application/json'}
+    ds_dict = {'dataframe_split': dataset.to_dict(orient='split')} if isinstance(dataset, pd.DataFrame) else create_tf_serving_json(dataset)
+    data_json = json.dumps(ds_dict, allow_nan=True)
+    response = requests.request(method='POST', headers=headers, url=url, data=data_json)
+    if response.status_code != 200:
+        raise Exception(f'Request failed with status {response.status_code}, {response.text}')
+    return response.json()
+
+# COMMAND ----------
+
+score_model(month_2_pdf.loc[1].to_frame().T)
 
 # COMMAND ----------
 

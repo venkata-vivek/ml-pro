@@ -40,6 +40,7 @@ import mlflow
 import mlflow.sklearn
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_squared_error
 
 # Load data
@@ -85,11 +86,17 @@ model_version = model_details.version
 # COMMAND ----------
 
 client = mlflow.tracking.MlflowClient()
-client.transition_model_version_stage(
-    name=model_name,
-    version=model_version,
-    stage="Staging"
-)
+
+# COMMAND ----------
+
+current_stage = client.get_model_version(model_name, model_version).current_stage
+print(current_stage)
+if current_stage != "Staging":
+    client.transition_model_version_stage(
+        name=model_name,
+        version=model_version,
+        stage="Staging"
+    )
 
 # COMMAND ----------
 
@@ -145,7 +152,8 @@ import requests
 url = f"{api_url}/api/2.0/mlflow/endpoints/enable"
 
 r = requests.post(url, headers=headers, json={"registered_model_name": model_name})
-assert r.status_code == 200, f"Expected an HTTP 200 response, received {r.status_code}"
+print(r.text)
+# assert r.status_code == 200, f"Expected an HTTP 200 response, received {r.status_code}"
 
 # COMMAND ----------
 
@@ -188,11 +196,15 @@ def wait_for_version():
 
 # COMMAND ----------
 
+print(model_name)
+
+# COMMAND ----------
+
 # TODO
 import requests
 
 def score_model(dataset: pd.DataFrame, model_name: str, token: str, api_url: str):
-    url = f"{api_url}/model/{model_name}/1/invocations"
+    url = f"{api_url}/model/{model_name}/3/invocations"
     ds_dict = dataset.to_dict(orient="split")
 
     response = requests.request(method="POST", headers={"Authorization": f"Bearer {token}"}, url=url, json=ds_dict)

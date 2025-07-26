@@ -23,7 +23,7 @@ print("data shape: ",data.shape)
 
 # COMMAND ----------
 
-
+data
 
 # COMMAND ----------
 
@@ -33,6 +33,10 @@ data.corr()
 # COMMAND ----------
 
 data.head(10)
+
+# COMMAND ----------
+
+data.columns
 
 # COMMAND ----------
 
@@ -192,6 +196,10 @@ with mlflow.start_run(run_name="untuned_random_forest"):
         additional_conda_channels=None
     )
     mlflow.pyfunc.log_model("random_forest_model",python_model=wrappedModel, conda_env=conda_env, signature=signature)
+
+# COMMAND ----------
+
+mlflow.search_runs(filter_string='tags.mlflow.runName = "untuned_random_forest"').iloc[0].run_id
 
 # COMMAND ----------
 

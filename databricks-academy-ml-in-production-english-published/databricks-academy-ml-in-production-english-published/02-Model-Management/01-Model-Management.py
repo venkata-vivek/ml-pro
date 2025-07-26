@@ -228,7 +228,7 @@ class RFWithPreprocess(mlflow.pyfunc.PythonModel):
             config_path = context.artifacts["config_path"]
         else: # This block executes for notebook run
             pass
-
+        print(f"config path here is {config_path}")
         self.config = json.load(open(config_path))
       
     def preprocess_input(self, model_input):
@@ -299,13 +299,14 @@ import json
 import os
 
 params = {
-    "n_estimators": 15, 
+    "n_estimators": 10, 
     "max_depth": 5
 }
 
 # Designate a path
-config_path = f"{DA.paths.working_path}/data.json"
-
+# config_path = f"{DA.paths.working_path}/data.json"
+config_path="/Workspace/Users/wuppukonduruvv/data.json"
+print(config_path)
 # Save the results
 with open(config_path, "w") as f:
     json.dump(params, f)
@@ -388,7 +389,7 @@ import sklearn
 
 conda_env = {
     "channels": ["defaults"],
-    "dependencies": [
+    "dependencies": [ 
         f"python={version_info.major}.{version_info.minor}.{version_info.micro}",
         "pip",
         {"pip": ["mlflow",
@@ -410,11 +411,18 @@ conda_env
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC The following sets of parameters cannot be specified together: dict_keys(['loader_module', 'data_path'])  and dict_keys(['artifacts', 'python_model']). All parameters in one set must be `None`. Instead, found the following values: {'loader_module': None, 'data_path': ['data_sklearn.json', 'data_xgb.json']} and {'artifacts': None, 'python_model': <__main__.RFWithPreprocess object at 0x7e033ae47440>}
+
+# COMMAND ----------
+
 with mlflow.start_run() as run:
     mlflow.pyfunc.log_model(
         "rf_preprocessed_model", 
         python_model=model, 
         artifacts=artifacts,
+        code_paths=["Labs"],
+        data_path=None,
         conda_env=conda_env,
         signature=signature,
         input_example=X_test[:3] 

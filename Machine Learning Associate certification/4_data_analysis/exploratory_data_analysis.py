@@ -41,7 +41,7 @@ schema = StructType([
 ])
 
 
-housing_df = spark.read.format("csv").schema(schema).option("header", "true").load("file:/Workspace/Users/wuppukonduruvv@delagelanden.com/Databricks-Certified-Machine-Learning-Associate-and-Professional/Machine Learning Associate certification/4_data_analysis/housing.csv")
+housing_df = spark.read.format("csv").schema(schema).option("header", "true").load("file:/Workspace/Users/wuppukonduruvv/ml-pro/Machine Learning Associate certification/4_data_analysis/housing.csv")
 display(housing_df)
 
 # COMMAND ----------

@@ -5,7 +5,7 @@ import pandas as pd
 
 # COMMAND ----------
 
-df_path = "file:/Workspace/Users/wuppukonduruvv@delagelanden.com/Databricks-Certified-Machine-Learning-Associate-and-Professional/Machine Learning Associate certification/1_AutoML_testing/housing.csv"
+df_path = "file:/Workspace/Users/wuppukonduruvv/Databricks-Certified-Machine-Learning-Associate-and-Professional/Machine Learning Associate certification/1_AutoML_testing/housing.csv"
 print(df_path)
 
 # COMMAND ----------

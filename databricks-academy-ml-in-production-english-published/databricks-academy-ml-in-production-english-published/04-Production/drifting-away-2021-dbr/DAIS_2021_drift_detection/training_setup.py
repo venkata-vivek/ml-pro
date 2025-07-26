@@ -63,12 +63,16 @@ print(username)
 
 # Set variables to use for reading/writing tmp artifacts and datasets
 project_home_dir = f"/Users/{username}"
-project_local_tmp_dir = "/dbfs" + project_home_dir + "tmp/"
-data_project_dir = f"{project_home_dir}data/"
+project_local_tmp_dir = "tmp/"
+data_project_dir = f"/data/"
 
 # Remove Data Project directory if exists - want to ensure there are no existing versions of Delta tables there
 dbutils.fs.rm(data_project_dir, True)
 dbutils.fs.mkdirs(data_project_dir)
+
+# COMMAND ----------
+
+
 
 # COMMAND ----------
 
@@ -98,20 +102,12 @@ registry_model_name = "airbnb_hawaii"
 # The cleaned (Delta) dataset can be found in the Google drive associated with bit.ly/dais_2021_drifting_away
 # You can use the Databricks CLI https://docs.databricks.com/dev-tools/cli/index.html to upload this directory
 # Download locally from the Google Drive, set up the CLI and use `dbfs cp -r airbnb-hawaii.delta dbfs:/path/to/dir/airbnb-hawaii.delta`
-raw_delta_path = "dbfs:/dais-2021/airbnb-hawaii.delta"
-
-# COMMAND ----------
-
-raw_delta_path = "dbfs:/FileStore/tables/airbnb-hawaii.delta"
+raw_delta_path = "default.airbnbhawaii"
 
 # COMMAND ----------
 
 # dbutils.fs.rm("dbfs:/FileStore/tables/", recurse=True)
 dbutils.fs.ls("dbfs:/FileStore/tables/airbnb-hawaii.delta")
-
-# COMMAND ----------
-
-
 
 # COMMAND ----------
 
@@ -139,7 +135,7 @@ month_2_delta_path = data_project_dir + "month_2_delta"
 # COMMAND ----------
 
 # Load full dataset and subset to specified columns
-airbnb_df = spark.read.format("delta").load(raw_delta_path)
+airbnb_df = spark.read.table(raw_delta_path)
 
 target_col = "price"
 num_cols = ["accommodates",
@@ -167,7 +163,7 @@ airbnb_df = airbnb_df.select(cols_to_keep)
 
 # The suffix of the variables used will correspond to the month they are intended to be used for
 df_0, df_1, df_2 = airbnb_df.randomSplit(weights=[1.0, 1.0, 1.0], seed=42)
-
+print(month_0_delta_path, month_1_fixed_delta_path, month_2_delta_path)
 df_0.write.format("delta").save(month_0_delta_path)
 df_1.write.format("delta").save(month_1_fixed_delta_path)
 

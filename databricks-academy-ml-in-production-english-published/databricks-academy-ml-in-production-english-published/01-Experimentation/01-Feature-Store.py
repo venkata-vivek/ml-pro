@@ -81,6 +81,7 @@ display(airbnb_df)
 
 (airbnb_df.write
           .format("delta")
+          .mode("overwrite")
           .save(DA.paths.airbnb))
 
 # COMMAND ----------

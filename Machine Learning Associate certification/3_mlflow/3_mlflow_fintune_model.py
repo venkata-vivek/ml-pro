@@ -4,19 +4,46 @@
 
 # COMMAND ----------
 
-from databricks.feature_store import FeatureStoreClient
+# from databricks.feature_store import FeatureStoreClient
 
-# Initialize the FeatureStoreClient
-fs = FeatureStoreClient()
+# # Initialize the FeatureStoreClient
+# fs = FeatureStoreClient()
 
-# Define the table name
-table_name = "wine_data_2024_09_12_07_13"
+# # Define the table name
+# table_name = "wine_data_2024_09_12_07_13"
 
-# Load the feature table into a DataFrame
-feature_table_df = fs.read_table(table_name)
+# # Load the feature table into a DataFrame
+# feature_table_df = fs.read_table(table_name)
 
-# Display the DataFrame
-display(feature_table_df)
+# # Display the DataFrame
+# display(feature_table_df)
+
+# COMMAND ----------
+
+import os
+import pandas as pd
+root_path = os.getcwd()
+white_wine = pd.read_csv(root_path+"/winequality-white.csv",sep=";")
+red_wine = pd.read_csv(root_path+"/winequality-red.csv",sep=";")
+
+# COMMAND ----------
+
+red_wine['is_red'] = 1
+white_wine['is_red'] = 0
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+feature_table_df = pd.concat([red_wine,white_wine],axis=0)
+# print("data shape: ",data.shape)
+
+# COMMAND ----------
+
+high_quality = (feature_table_df.quality >= 7).astype(int)
+feature_table_df.quality= high_quality
 
 # COMMAND ----------
 
@@ -25,7 +52,7 @@ from sklearn.metrics import roc_auc_score
 from mlflow.models.signature import infer_signature
 
 
-data = feature_table_df.toPandas()
+data = feature_table_df
 X = data.drop(['quality'],axis=1)
 y = data.quality
 
@@ -34,6 +61,10 @@ X_train, X_rem , y_train, y_rem = train_test_split(X,y,train_size=0.8,random_sta
 
 # Split the remaining data euqally into validation and test
 X_val, X_test, y_val, y_test = train_test_split(X_rem,y_rem,test_size=0.5,random_state=123)
+
+# COMMAND ----------
+
+y_train
 
 # COMMAND ----------
 
@@ -48,7 +79,7 @@ import xgboost as xgb
 
 search_space = {
     "max_depth" : scope.int(hp.quniform('max_depth',4,100,1)),
-    "learning_rate" : hp.loguniform("learning_rate",-3,0),
+    "learning_rate" : hp.loguniform("learning_rate",-2,0),
     "reg_alpha" : hp.loguniform("reg_alpha",-5,-1),
     "min_child_weight" : hp.loguniform("min_child_weight",-1,3),
     "objective" : 'binary:logistic',
@@ -58,7 +89,7 @@ search_space = {
 # COMMAND ----------
 
 def train_model(params):
-    mlflow.xgboost.autolog()
+   
     with mlflow.start_run(nested=True) as run:
         train = xgb.DMatrix(data=X_train,label=y_train)
         validation =  xgb.DMatrix(data=X_val,label=y_val)
@@ -92,11 +123,17 @@ from hyperopt import SparkTrials
 # Greater parallelism will lead to speedups, but a less optimal hpyerparameter sweep.
 # A reasonable value for parallelism is the square root of max_evals.
 
-spark_trainals = SparkTrials(parallelism=10)
+spark_trainals = SparkTrials(parallelism=5)
 
 # COMMAND ----------
 
-with mlflow.start_run(run_name="xgboost_models"):
+mlflow.set_experiment('/Shared/diabetes_experiment')
+
+# COMMAND ----------
+
+mlflow.xgboost.autolog()
+with mlflow.start_run(run_name="xgboost_models_2"):
+    
     best_params = fmin(
         fn = train_model,
         space= search_space,
@@ -104,6 +141,10 @@ with mlflow.start_run(run_name="xgboost_models"):
         max_evals= 12,
         trials= spark_trainals
     )
+
+# COMMAND ----------
+
+
 
 # COMMAND ----------
 
@@ -118,11 +159,17 @@ print(f"AUC of Best Run : {best_run['metrics.auc']}")
 
 new_model_version = mlflow.register_model(f"runs:/{best_run.run_id}/model", "wine_quality")
 
-
-
 # COMMAND ----------
 
 new_model_version
+
+# COMMAND ----------
+
+mlflow.artifacts.list_artifacts(best_run.run_id)
+
+# COMMAND ----------
+
+mlflow.artifacts.download_artifacts(run_id=best_run.run_id, dst_path="/dbfs/tmp/artifacts")
 
 # COMMAND ----------
 

@@ -76,6 +76,7 @@ import numpy as np
 
 # Define the model class
 class RFWithPostprocess(mlflow.pyfunc.PythonModel):
+    
 
     def __init__(self, trained_rf):
         self.rf = trained_rf

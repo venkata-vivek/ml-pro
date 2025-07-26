@@ -20,14 +20,15 @@ schema = StructType([
     StructField("income", StringType(), True),
 ])
 
-df_path = "file:/Workspace/Users/wuppukonduruvv@delagelanden.com/Databricks-Certified-Machine-Learning-Associate-and-Professional/Machine Learning Associate certification/1_AutoML_testing/Adult_Census_Income.csv"
+df_path = "file:/Workspace/Users/wuppukonduruvv/ml-pro/Machine Learning Associate certification/1_AutoML_testing/Adult_Census_Income.csv"
+
 census_df = spark.read.format("csv").schema(schema).load(df_path)
 census_df.head()
 display(census_df)
 
 # COMMAND ----------
 
-census_df.write.saveAsTable("default.census_t")
+census_df.write.mode("overwrite").saveAsTable("default.census_t")
 
 # COMMAND ----------
 

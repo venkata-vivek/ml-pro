@@ -49,6 +49,10 @@ with mlflow.start_run():
 
 # COMMAND ----------
 
+mlflow.autolog(disable=True)
+
+# COMMAND ----------
+
 with mlflow.start_run():
     n_estimators = 110
     max_depth = 10

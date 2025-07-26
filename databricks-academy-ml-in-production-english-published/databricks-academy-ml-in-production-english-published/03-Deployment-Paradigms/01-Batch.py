@@ -114,10 +114,31 @@ with mlflow.start_run(run_name="Final RF Model") as run:
     rf.fit(X, y)
 
     predictions = rf.predict(X)
-    mlflow.sklearn.log_model(rf, "random_forest_model")
+    model_info = mlflow.sklearn.log_model(rf, "random_forest_model")
 
     mse = mean_squared_error(y, predictions) # This is on the same data the model was trained
     mlflow.log_metric("mse", mse)
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+model_info.model_uri
+
+# COMMAND ----------
+
+new_model = mlflow.register_model(model_info.model_uri,'airbnb-model-2')
+
+# COMMAND ----------
+
+runs = spark.read.format("mlflow-experiment").load("d2da94a0b25b4716a493a53e5bb8172e")
+display(runs.orderBy("metrics.mse",ascending=True))
+
+# COMMAND ----------
+
+runs
 
 # COMMAND ----------
 
@@ -142,7 +163,33 @@ display(spark_df)
 
 # COMMAND ----------
 
+load_model = mlflow.pyfunc.load_model(f"runs:/{run.info.run_id}/random_forest_model")
+
+# COMMAND ----------
+
+ps_Df = spark_df.toPandas()
+
+# COMMAND ----------
+
+ps_Df['prediction'] = load_model.predict(ps_Df)
+
+
+# COMMAND ----------
+
+ps_Df
+
+# COMMAND ----------
+
+df
+
+# COMMAND ----------
+
 predict = mlflow.pyfunc.spark_udf(spark, f"runs:/{run.info.run_id}/random_forest_model")
+
+# COMMAND ----------
+
+# Apply spark udf on pandas dataframe 
+df['predictions'] = 
 
 # COMMAND ----------
 
@@ -171,17 +218,16 @@ from pyspark.sql.functions import udf , col
 from pyspark.sql.types import DoubleType
 
 # Define the predict function
-def predict(*cols):
+def py_predict(*cols):
     # Your prediction logic here
     # For example, summing all columns
     # return sum(cols)
-    cols_int = [float(c) for c in cols]
-    
+    prediction = float(load_model.predict([cols]))
     # Return the sum of the integer columns
-    return sum(cols_int)
+    return prediction
 
 # Register the UDF
-predict_udf = udf(predict, DoubleType())
+predict_udf = udf(py_predict, DoubleType())
 
 # Apply the UDF to the DataFrame
 prediction_df = spark_df.withColumn("prediction", predict_udf(*spark_df.columns))
@@ -190,8 +236,9 @@ display(prediction_df)
 
 # COMMAND ----------
 
-prediction_df = spark_df.withColumn("prediction", predict(*spark_df.columns))
-
+# prediction_df = spark_df.withColumn("prediction", predict(*spark_df.columns))
+#  RESULTS ERROR could not convert string to float: 'host_total_listings_count'
+prediction_df = spark_df.withColumn("prediction", predict(struct(*spark_df.columns)))
 display(prediction_df)
 
 # COMMAND ----------
@@ -252,6 +299,10 @@ display(dbutils.fs.ls(delta_partitioned_path))
 # COMMAND ----------
 
 spark.sql(f"OPTIMIZE delta.`{delta_partitioned_path}` ZORDER BY (zipcode)")
+
+# COMMAND ----------
+
+spark.sql(f"OPTIMIZE default.diamonds_df_not_partitioned ZORDER BY (cut)")
 
 # COMMAND ----------
 

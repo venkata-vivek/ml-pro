@@ -248,6 +248,7 @@ model_version_details = client.get_model_version(
   name=model_details.name,
   version=model_details.version,
 )
+# print(model_version_details)
 print(f"The current model stage is: '{model_version_details.current_stage}'")
 
 # COMMAND ----------
@@ -262,12 +263,18 @@ print(f"The current model stage is: '{model_version_details.current_stage}'")
 
 # COMMAND ----------
 
+run_id = model_version_details.run_id
+model_run_uri = f"runs:/{run_id}/model"
+print(f"Model run URI: '{model_run_uri}'")
+
+# COMMAND ----------
+
 import mlflow.pyfunc
 
 model_version_uri = f"models:/{model_name}/1"
 
 print(f"Loading registered model version from URI: '{model_version_uri}'")
-model_version_1 = mlflow.pyfunc.load_model(model_version_uri)
+model_version_1 = mlflow.pyfunc.load_model(model_run_uri)
 
 # COMMAND ----------
 
@@ -351,6 +358,7 @@ with mlflow.start_run(run_name="RF Model") as run:
 model_version_infos = client.search_model_versions(f"name = '{model_name}'")
 new_model_version = max([model_version_info.version for model_version_info in model_version_infos])
 print(f"New model version: {new_model_version}")
+
 
 # COMMAND ----------
 

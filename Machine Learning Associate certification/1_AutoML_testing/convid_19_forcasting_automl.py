@@ -1,5 +1,5 @@
 # Databricks notebook source
-from pyspark.sql.types import StringType, DoubleType,StructType,StructField 
+from pyspark.sql.types import StringType, DoubleType,StructType,StructField
 
 # COMMAND ----------
 
@@ -23,20 +23,22 @@ display(covid_df)
 
 """
 import pandas as pd
-df_path = "/Workspace/Users/wuppukonduruvv@delagelanden.com/Databricks-Certified-Machine-Learning-Associate-and-Professional/Machine Learning Associate certification/1_AutoML_testing/us-counties-2020.csv"
-covid_df = pd.read_csv(df_path)
-spark_df = spark.createDataFrame(covid_df)
-display(spark_df)
+df_path = "file:/Workspace/Users/wuppukonduruvv/ml-pro/Machine Learning Associate certification/1_AutoML_testing/us-counties-2020.csv"
+covid_df = spark.read.format("csv").schema(schema).option("header","true").load(df_path)
+display(covid_df)
+# covid_df = pd.read_csv(df_path)
+# spark_df = spark.createDataFrame(covid_df)
+# display(spark_df)
 
 
 # COMMAND ----------
 
-spark_df.write.saveAsTable("default.covid_df")
+covid_df.write.mode('overwrite').saveAsTable("default.covid_df_2")
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SELECT * from default.covid_df
+# MAGIC SELECT * from default.covid_df_2
 # MAGIC
 # MAGIC
 

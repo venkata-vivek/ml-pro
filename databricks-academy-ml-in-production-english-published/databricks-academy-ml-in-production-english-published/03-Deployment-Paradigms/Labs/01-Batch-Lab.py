@@ -93,12 +93,17 @@ model_details = mlflow.register_model(model_uri=model_uri, name=model_name)
 
 # COMMAND ----------
 
+model_uri
+
+# COMMAND ----------
+
 # TODO
+from pyspark.sql.functions import struct
 # Create the prediction UDF
 predict = mlflow.pyfunc.spark_udf(spark, model_uri)
 
 # Compute the predictions
-prediction_df = df.withColumn("prediction", predict(*[col for col in df.columns if col != "price"]))
+prediction_df = df.withColumn("prediction", predict(struct(*[col for col in df.columns if col != "price"])))
              
 
 # View the results
